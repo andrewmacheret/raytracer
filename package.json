@@ -1,0 +1,46 @@
+{
+  "name": "raytracer",
+  "version": "1.0.0",
+  "description": "A web-based ray tracer written in React.",
+  "main": "bundle.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewmacheret/raytracer.git"
+  },
+  "keywords": [
+    "react",
+    "chess"
+  ],
+  "author": "Andrew Macheret <andrew.macheret@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/andrewmacheret/raytracer/issues"
+  },
+  "homepage": "https://github.com/andrewmacheret/raytracer#readme",
+  "devDependencies": {
+    "browserify": "^12.0.1",
+    "del": "^2.2.0",
+    "gulp": "^3.9.0",
+    "gulp-minify-css": "^1.2.2",
+    "gulp-notify": "^2.2.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-streamify": "^1.0.2",
+    "gulp-uglify": "^1.5.1",
+    "gulp-util": "^3.0.7",
+    "reactify": "^1.1.1",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "^3.6.1"
+  },
+  "dependencies": {
+    "babel-preset-react": "^6.3.13",
+    "babelify": "^7.2.0",
+    "jquery": "^2.1.4",
+    "properties-reader": "0.0.13",
+    "react": "^0.14.3",
+    "react-dom": "^0.14.3"
+  }
+}
+
