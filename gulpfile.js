@@ -64,7 +64,9 @@ function buildJs(options) {
     
     // If compress is enabled, also build a minified bundle file
     if (compress) {
-      b = b.pipe(streamify(uglify()))
+      b = b.pipe(streamify(uglify().on('error', function(err) {
+          console.error(err);
+        })))
         .pipe(rename({extname: PATHS.minExt + 'js'}))
         .pipe(gulp.dest(PATHS.buildDir + '/' + PATHS.jsDir));
     }

@@ -27,7 +27,7 @@ Color.parse = function(str) {
 
 Color.prototype.multiply = function(scalar) {
   return new Color(
-    this.a * scalar,
+    this.a,
     this.r * scalar,
     this.g * scalar,
     this.b * scalar
@@ -36,7 +36,7 @@ Color.prototype.multiply = function(scalar) {
 
 Color.prototype.divide = function(scalar) {
   return new Color(
-    this.a / scalar,
+    this.a,
     this.r / scalar,
     this.g / scalar,
     this.b / scalar
@@ -45,7 +45,7 @@ Color.prototype.divide = function(scalar) {
 
 Color.prototype.invert = function() {
   return new Color(
-    0xff - this.a,
+    this.a,
     0xff - this.r,
     0xff - this.g,
     0xff - this.b

@@ -99,6 +99,7 @@ var Scene = React.createClass({
       }
 
       object.type = objectType;
+      object.index = i;
       if (object.type == 'light') {
         scene.lights.push(object);
       } else {
@@ -112,14 +113,15 @@ var Scene = React.createClass({
   },
 
   createImage: function(context, scene) {
-    var image = context.createImageData(this.props.width, this.props.height);
-
+    var width = this.props.width * 2;
+    var height = this.props.height * 2;
+    var image = context.createImageData(width, height);
 
     var z = 0;
-    for (var y = 0; y < this.props.height; y++) {
-      for (var x = 0; x < this.props.width; x++) {
-        var index = (y * this.props.height + x) * 4;
-        var color = this.getColor(x, y);
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        var index = (y * width + x) * 4;
+        var color = this.getColor(x, y, width, height);
         image.data[index + 0] = color.r;
         image.data[index + 1] = color.g;
         image.data[index + 2] = color.b;
@@ -131,12 +133,12 @@ var Scene = React.createClass({
     return image;
   },
 
-  getColor: function(x, y) {
+  getColor: function(x, y, width, height) {
     var trueUp = new Vector(0, 0, 1);
     var camera = this.state.scene.camera;
-    var h = (this.props.width / 2) / Math.tan(camera.field / 2)
-    var xM = this.props.width / 2 - x;
-    var yM = this.props.height / 2 - y;
+    var h = (width / 2) / Math.tan(camera.field / 2)
+    var xM = width / 2 - x;
+    var yM = height / 2 - y;
 
     var right = trueUp.crossProduct(camera.direction).normalized();
     var down = camera.direction.crossProduct(right).normalized();
@@ -201,7 +203,7 @@ var Scene = React.createClass({
 
   getColorFromPathTree: function(pathTree) {
     var colorIntensities = this.getColorIntensitiesFromPathTree(pathTree, 0);
-    
+
     // combine the colors with the intensities
     var colors = colorIntensities.map(function(colorIntensitiy) {
       return colorIntensitiy.color.multiply(colorIntensitiy.intensity);
@@ -215,96 +217,120 @@ var Scene = React.createClass({
     return finalColor.normalized();
   },
 
-  getPathTree: function(rayPosition, rayDirection, depth) {
-    if (depth <= 0) return null;
+  getLightIntersection: function(light, rayPosition, rayDirection) {
+    var l = light.center.subtract(rayPosition);
+    var lMag = l.magnitude();
+    var tca = rayDirection.dotProduct(l);
+    if (tca <= 0) return null;
+    if (lMag < tca) return null;
+    var d = Math.sqrt(lMag * lMag - tca * tca);
+    if (light.radius <= d) return null;
+    var thc = Math.sqrt(light.radius * light.radius - d * d);
+    var t0 = tca - thc;
+    var t1 = tca + thc;
+    var newRayPosition = rayPosition.add(rayDirection.multiply(t0));
+    var strength = (t1 - t0) / (2 * light.radius);
 
+    var n = newRayPosition.subtract(light.center).normalized();
+    var newRayDirection = rayDirection.subtract(n.multiply(2 * rayDirection.dotProduct(n))).normalized();
+
+    var distance = rayPosition.distance(newRayPosition);
+    
+    return {
+      object: light,
+      distance: distance,
+      position: newRayPosition,
+      reflectionDirection: newRayDirection,
+      normalDirection: n,
+      strength: strength
+    };
+  },
+
+  getSphereIntersection: function(sphere, rayPosition, rayDirection) {
+    var l = sphere.center.subtract(rayPosition);
+    var lMag = l.magnitude();
+    var tca = rayDirection.dotProduct(l);
+    if (tca <= 0) return null;
+    if (lMag <= tca) return null;
+    var d = Math.sqrt(lMag * lMag - tca * tca);
+    if (sphere.radius <= d) return null;
+    var thc = Math.sqrt(sphere.radius * sphere.radius - d * d);
+    var t0 = tca - thc;
+    var newRayPosition = rayPosition.add(rayDirection.multiply(t0));
+
+    var n = newRayPosition.subtract(sphere.center).normalized();
+    var newRayDirection = rayDirection.subtract(n.multiply(2 * rayDirection.dotProduct(n))).normalized();
+
+    var distance = rayPosition.distance(newRayPosition);
+    
+    return {
+      object: sphere,
+      distance: distance,
+      position: newRayPosition,
+      reflectionDirection: newRayDirection,
+      normalDirection: n
+    };
+  },
+
+  getPlaneIntersection: function(plane, rayPosition, rayDirection) {
+    var denom = rayDirection.dotProduct(plane.normal);
+    if (denom >= 0) return null;
+    var t = (plane.point.subtract(rayPosition)).dotProduct(plane.normal) / denom;
+    if (t <= 0) return null;
+    var newRayPosition = rayPosition.add(rayDirection.multiply(t));
+    var newRayDirection = rayDirection.subtract(plane.normal.multiply(2 * rayDirection.dotProduct(plane.normal))).normalized();
+
+    var distance = rayPosition.distance(newRayPosition);
+    
+    return {
+      object: plane,
+      distance: distance,
+      position: newRayPosition,
+      reflectionDirection: newRayDirection,
+      normalDirection: plane.normal
+    };
+  },
+
+  findClosestObject: function(rayPosition, rayDirection) {
     var closest = null;
 
     this.state.scene.lights.forEach(function(object) {
-      var l = object.center.subtract(rayPosition);
-      var lMag = l.magnitude();
-      var tca = rayDirection.dotProduct(l);
-      if (tca <= 0) return;
-      if (lMag <= tca) return;
-      var d = Math.sqrt(lMag * lMag - tca * tca);
-      if (object.radius <= d) return;
-      var thc = Math.sqrt(object.radius * object.radius - d * d);
-      var t0 = tca - thc;
-      var t1 = tca + thc;
-      var newRayPosition = rayPosition.add(rayDirection.multiply(t0));
-      var strength = (t1 - t0) / (2 * object.radius);
-
-      var n = newRayPosition.subtract(object.center).normalized();
-      var newRayDirection = rayDirection.subtract(n.multiply(2 * rayDirection.dotProduct(n))).normalized();
-
-      var distance = rayPosition.distance(newRayPosition);
+      var intersection = this.getLightIntersection(object, rayPosition, rayDirection);
       
-      if (closest == null || distance < closest.distance) {
-        closest = {
-          object: object,
-          distance: distance,
-          position: newRayPosition,
-          reflectionDirection: newRayDirection,
-          normalDirection: n,
-          strength: strength
-        };
+      if (intersection != null && (closest == null || intersection.distance < closest.distance)) {
+        closest = intersection;
       }
-    });
+    }.bind(this));
 
     this.state.scene.objects.forEach(function(object) {
       switch(object.type) {
         case 'sphere':
-          var l = object.center.subtract(rayPosition);
-          var lMag = l.magnitude();
-          var tca = rayDirection.dotProduct(l);
-          if (tca <= 0) break;
-          if (lMag <= tca) break;
-          var d = Math.sqrt(lMag * lMag - tca * tca);
-          if (object.radius <= d) break;
-          var thc = Math.sqrt(object.radius * object.radius - d * d);
-          var t0 = tca - thc;
-          var newRayPosition = rayPosition.add(rayDirection.multiply(t0));
-
-          var n = newRayPosition.subtract(object.center).normalized();
-          var newRayDirection = rayDirection.subtract(n.multiply(2 * rayDirection.dotProduct(n))).normalized();
-
-          var distance = rayPosition.distance(newRayPosition);
+          var intersection = this.getSphereIntersection(object, rayPosition, rayDirection);
           
-          if (closest == null || distance < closest.distance) {
-            closest = {
-              object: object,
-              distance: distance,
-              position: newRayPosition,
-              reflectionDirection: newRayDirection,
-              normalDirection: n
-            };
+          if (intersection != null && (closest == null || intersection.distance < closest.distance)) {
+            closest = intersection;
           }
 
           break;
 
         case 'plane':
-          var denom = -rayDirection.dotProduct(object.normal);
-          if (denom <= 0) break;
-          var t = -(object.point.subtract(rayPosition)).dotProduct(object.normal) / denom;
-          if (t <= 0) break;
-          var newRayPosition = rayPosition.add(rayDirection.multiply(t));
-          var newRayDirection = rayDirection.subtract(object.normal.multiply(2 * rayDirection.dotProduct(object.normal))).normalized();
-
-          var distance = rayPosition.distance(newRayPosition);
+          var intersection = this.getPlaneIntersection(object, rayPosition, rayDirection);
           
-          if (closest == null || distance < closest.distance) {
-            closest = {
-              object: object,
-              distance: distance,
-              position: newRayPosition,
-              reflectionDirection: newRayDirection,
-              normalDirection: object.normal
-            };
+          if (intersection != null && (closest == null || intersection.distance < closest.distance)) {
+            closest = intersection;
           }
 
           break;
       }
-    });
+    }.bind(this));
+
+    return closest;
+  },
+
+  getPathTree: function(rayPosition, rayDirection, depth) {
+    if (depth <= 0) return null;
+
+    var closest = this.findClosestObject(rayPosition, rayDirection);
   
     if (!closest) { 
       return null;
@@ -315,7 +341,7 @@ var Scene = React.createClass({
 
       closest.reflection = this.getPathTree(closest.position, closest.reflectionDirection, depth - 1);
 
-      //closest.refraction = this.getPath(closest.position, closest.refractionDirection, depth - 1);
+      //closest.refraction = this.getPathTree(closest.position, closest.refractionDirection, depth - 1);
     }
 
     return closest;
@@ -326,8 +352,16 @@ var Scene = React.createClass({
 
     this.state.scene.lights.forEach(function(object) {
       var l = object.center.subtract(rayPosition);
-      var percent = rayDirection.dotProduct(l.normalized());
+      var lMag = l.magnitude();
+      var lNorm = l.normalized();
+
+      var percent = rayDirection.dotProduct(lNorm);
       if (percent <= 0) return;
+
+      var closest = this.findClosestObject(rayPosition, lNorm);
+      if (closest == null || closest.object.index != object.index) {
+        return;
+      }
 
       // TODO: make sure there's nothing in the path vector l (nothing in the path of the light)
 
@@ -337,7 +371,7 @@ var Scene = React.createClass({
         position: object.center,
         strength: percent
       });
-    });
+    }.bind(this));
 
     return diffusions;
   },
@@ -349,7 +383,10 @@ var Scene = React.createClass({
 
   render: function() {
     return (
-      <canvas width={this.props.width} height={this.props.height} />
+      <div>
+        <canvas width={this.props.width} height={this.props.height} />
+        <img style={{display: 'hidden'}} />
+      </div>
     );
     
   },
@@ -363,14 +400,39 @@ var Scene = React.createClass({
   },
 
   renderCanvas: function() {
-    var canvas = ReactDOM.findDOMNode(this);
+    var canvas = ReactDOM.findDOMNode(this).getElementsByTagName('canvas')[0];
     var context = canvas.getContext('2d');
+
+    var canvasCopy = document.createElement('canvas');
+    var contextCopy = canvasCopy.getContext('2d');
+    canvasCopy.width = canvas.width * 2;
+    canvasCopy.height = canvas.height * 2;
 
     // make sure we're ready to draw the camera and the scene
     if (this.state.scene) {
       var image = this.createImage(context, this.state.scene);
 
-      context.putImageData(image, 0, 0);
+      contextCopy.putImageData(image, 0, 0);
+
+      if (image.width != canvas.width || image.height != canvas.height) {
+        context.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
+      }
+
+      if (this.props.antiAliasing > 0) {
+        canvasCopy.width = canvas.width * 2;
+        canvasCopy.height = canvas.height * 2;
+
+        // stupid basic antialiasing
+        for (var i = 0; i < this.props.antiAliasing; i++) {
+          contextCopy.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, canvasCopy.width, canvasCopy.height);
+          context.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      // debug:
+      canvas.addEventListener('mousemove', function(e) {
+        console.log(e.offsetX, e.offsetY);
+      });
     }
   }
 });
