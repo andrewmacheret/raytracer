@@ -6,6 +6,8 @@ var ReactDOM = require('react-dom');
 var $ = require('jquery');
 var reader = require('properties-reader');
 
+var ProgressBar = require('./progress-bar.js');
+
 var Vector = require('./vector.js');
 
 var Color = require('./color.js');
@@ -21,7 +23,13 @@ var Scene = React.createClass({
   loadScene: function(properties) {
     var scene = {
       depth: parseFloat(properties.get('scene.depth')),
-      sky: Color.parse(properties.get('scene.sky')),
+      sky: {
+        color: Color.parse(properties.get('scene.sky.color'))
+      },
+      ambient: {
+        color: Color.parse(properties.get('scene.ambient.color')),
+        intensity: parseFloat(properties.get('scene.ambient.intensity'))
+      },
 
       camera: {
         position: new Vector(
@@ -66,6 +74,7 @@ var Scene = React.createClass({
           object = {
             diffuse: parseFloat(properties.get(prefix + 'diffuse')),
             reflect: parseFloat(properties.get(prefix + 'reflect')),
+            refract: parseFloat(properties.get(prefix + 'refract')),
             color: Color.parse(properties.get(prefix + 'color')),
             center: new Vector(
               parseFloat(properties.get(prefix + 'center.x')),
@@ -80,6 +89,7 @@ var Scene = React.createClass({
           object = {
             diffuse: parseFloat(properties.get(prefix + 'diffuse')),
             reflect: parseFloat(properties.get(prefix + 'reflect')),
+            refract: parseFloat(properties.get(prefix + 'refract')),
             color: Color.parse(properties.get(prefix + 'color')),
             normal: new Vector(
               parseFloat(properties.get(prefix + 'normal.x')),
@@ -92,6 +102,50 @@ var Scene = React.createClass({
               parseFloat(properties.get(prefix + 'point.z'))
             )
           };
+          break;
+
+        case 'quad':
+          object = {
+            diffuse: parseFloat(properties.get(prefix + 'diffuse')),
+            reflect: parseFloat(properties.get(prefix + 'reflect')),
+            refract: parseFloat(properties.get(prefix + 'refract')),
+            color: Color.parse(properties.get(prefix + 'color')),
+            inverse: properties.get(prefix + 'inverse'),
+            points: [
+              new Vector(
+                parseFloat(properties.get(prefix + 'point.1.x')),
+                parseFloat(properties.get(prefix + 'point.1.y')),
+                parseFloat(properties.get(prefix + 'point.1.z'))
+              ),
+              new Vector(
+                parseFloat(properties.get(prefix + 'point.2.x')),
+                parseFloat(properties.get(prefix + 'point.2.y')),
+                parseFloat(properties.get(prefix + 'point.2.z'))
+              ),
+              new Vector(
+                parseFloat(properties.get(prefix + 'point.3.x')),
+                parseFloat(properties.get(prefix + 'point.3.y')),
+                parseFloat(properties.get(prefix + 'point.3.z'))
+              ),
+              new Vector(
+                parseFloat(properties.get(prefix + 'point.4.x')),
+                parseFloat(properties.get(prefix + 'point.4.y')),
+                parseFloat(properties.get(prefix + 'point.4.z'))
+              )
+            ]
+          };
+
+          object.rays = [
+            object.points[0].subtract(object.points[1]).normalized(), // forward
+            object.points[2].subtract(object.points[1]).normalized(), // backward
+            object.points[2].subtract(object.points[3]).normalized(), // forward
+            object.points[0].subtract(object.points[3]).normalized()  // backward
+          ];
+          object.normals = [
+            object.rays[0].crossProduct(object.rays[1]).normalized(), // forward x backward
+            object.rays[2].crossProduct(object.rays[3]).normalized()  // forward x backward
+          ];
+
           break;
 
         default:
@@ -112,25 +166,47 @@ var Scene = React.createClass({
     });
   },
 
-  createImage: function(context, scene) {
+  updateProgress: function(progress) {
+    this.refs.progressBar.updateProgress(progress);
+  },
+
+  finishProgress: function() {
+    this.refs.progressBar.hide();
+  },
+
+  createImage: function(context, scene, imageCallback) {
     var width = this.props.width * 2;
     var height = this.props.height * 2;
     var image = context.createImageData(width, height);
 
-    var z = 0;
-    for (var y = 0; y < height; y++) {
-      for (var x = 0; x < width; x++) {
-        var index = (y * width + x) * 4;
-        var color = this.getColor(x, y, width, height);
-        image.data[index + 0] = color.r;
-        image.data[index + 1] = color.g;
-        image.data[index + 2] = color.b;
-        image.data[index + 3] = color.a;
-      }
-      console.log(new Date(), x, y);
-    }
+    var loop = function(yBase, step) {
+      for (var y = yBase; y < yBase + step; y++) {
+        if (y >= height) {
+          imageCallback(image);
 
-    return image;
+          this.finishProgress();
+
+          return;
+        }
+
+        for (var x = 0; x < width; x++) {
+          var index = (y * width + x) * 4;
+          var color = this.getColor(x, y, width, height);
+          image.data[index + 0] = color.r;
+          image.data[index + 1] = color.g;
+          image.data[index + 2] = color.b;
+          image.data[index + 3] = color.a;
+        }
+      }
+
+      console.log(new Date(), x, yBase);
+      this.updateProgress(index / image.data.length);
+
+      var nextIteration = function() { loop(yBase + step, step); };
+      window.setTimeout(nextIteration, 0);
+    }.bind(this);
+
+    loop(0, 5);
   },
 
   getColor: function(x, y, width, height) {
@@ -164,7 +240,7 @@ var Scene = React.createClass({
     var colorIntensities = [];
 
     if (pathTree == null) {
-      colorIntensities.push({color: this.state.scene.sky, intensity: 1});
+      colorIntensities.push({color: this.state.scene.sky.color, intensity: 1});
       return colorIntensities;
     }
 
@@ -203,6 +279,7 @@ var Scene = React.createClass({
 
   getColorFromPathTree: function(pathTree) {
     var colorIntensities = this.getColorIntensitiesFromPathTree(pathTree, 0);
+    colorIntensities.push({color: Color.WHITE, intensity: 0.05});
 
     // combine the colors with the intensities
     var colors = colorIntensities.map(function(colorIntensitiy) {
@@ -291,6 +368,44 @@ var Scene = React.createClass({
     };
   },
 
+  getTriangleIntersectionPart: function(points, normal, inverse, rayPosition, rayDirection) {
+    var plane = {normal: normal, point: points[0]};
+    var intersection = this.getPlaneIntersection(plane, rayPosition, rayDirection);
+    if (intersection == null) return null;
+
+    var numFailed = 0;
+    for (var i=0; i<points.length; i++) {
+      var point = points[i];
+      var lastPoint = points[(i + points.length - 1) % points.length];
+      var edge = point.subtract(lastPoint);
+      var vector = intersection.position.subtract(lastPoint);
+      var cross = edge.crossProduct(vector);
+      var determinant = cross.dotProduct(normal);
+      if (determinant >= 0) {
+        return inverse ? intersection : null;
+      }
+    }
+
+    return inverse ? null : intersection;
+  },
+
+  getQuadIntersection: function(quad, rayPosition, rayDirection) {
+    for (var i = 0; i < 2; i++) {
+      var points = [];
+      points.push(quad.points[(i * 2 + 0) % quad.points.length]); // 0 or 2
+      points.push(quad.points[(i * 2 + 1) % quad.points.length]); // 1 or 3
+      points.push(quad.points[(i * 2 + 2) % quad.points.length]); // 2 or 0
+
+      var normal = quad.normals[i];
+      var intersection = this.getTriangleIntersectionPart(points, normal, quad.inverse, rayPosition, rayDirection);
+      if (intersection != null) {
+        intersection.object = quad;
+        return intersection;
+      }
+    }
+    return null;
+  },
+
   findClosestObject: function(rayPosition, rayDirection) {
     var closest = null;
 
@@ -302,25 +417,17 @@ var Scene = React.createClass({
       }
     }.bind(this));
 
+    var fnMapping = {
+      sphere: 'getSphereIntersection',
+      plane: 'getPlaneIntersection',
+      quad: 'getQuadIntersection'
+    };
     this.state.scene.objects.forEach(function(object) {
-      switch(object.type) {
-        case 'sphere':
-          var intersection = this.getSphereIntersection(object, rayPosition, rayDirection);
-          
-          if (intersection != null && (closest == null || intersection.distance < closest.distance)) {
-            closest = intersection;
-          }
-
-          break;
-
-        case 'plane':
-          var intersection = this.getPlaneIntersection(object, rayPosition, rayDirection);
-          
-          if (intersection != null && (closest == null || intersection.distance < closest.distance)) {
-            closest = intersection;
-          }
-
-          break;
+      var fn = this[fnMapping[object.type]];
+      var intersection = fn(object, rayPosition, rayDirection);
+      
+      if (intersection != null && (closest == null || intersection.distance < closest.distance)) {
+        closest = intersection;
       }
     }.bind(this));
 
@@ -383,7 +490,8 @@ var Scene = React.createClass({
 
   render: function() {
     return (
-      <div>
+      <div className="scene">
+        <ProgressBar ref="progressBar" start={0} end={1} text="Loading..." />
         <canvas width={this.props.width} height={this.props.height} />
         <img style={{display: 'hidden'}} />
       </div>
@@ -410,29 +518,29 @@ var Scene = React.createClass({
 
     // make sure we're ready to draw the camera and the scene
     if (this.state.scene) {
-      var image = this.createImage(context, this.state.scene);
+      this.createImage(context, this.state.scene, function(image) {
+        contextCopy.putImageData(image, 0, 0);
 
-      contextCopy.putImageData(image, 0, 0);
-
-      if (image.width != canvas.width || image.height != canvas.height) {
-        context.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
-      }
-
-      if (this.props.antiAliasing > 0) {
-        canvasCopy.width = canvas.width * 2;
-        canvasCopy.height = canvas.height * 2;
-
-        // stupid basic antialiasing
-        for (var i = 0; i < this.props.antiAliasing; i++) {
-          contextCopy.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, canvasCopy.width, canvasCopy.height);
+        if (image.width != canvas.width || image.height != canvas.height) {
           context.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
         }
-      }
 
-      // debug:
-      canvas.addEventListener('mousemove', function(e) {
-        console.log(e.offsetX, e.offsetY);
-      });
+        if (this.props.antiAliasing > 0) {
+          canvasCopy.width = canvas.width * 2;
+          canvasCopy.height = canvas.height * 2;
+
+          // stupid basic antialiasing
+          for (var i = 0; i < this.props.antiAliasing; i++) {
+            contextCopy.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, canvasCopy.width, canvasCopy.height);
+            context.drawImage(canvasCopy, 0, 0, canvasCopy.width, canvasCopy.height, 0, 0, canvas.width, canvas.height);
+          }
+        }
+
+        // debug:
+        canvas.addEventListener('mousemove', function(e) {
+          console.log(e.offsetX, e.offsetY);
+        });
+      }.bind(this));
     }
   }
 });

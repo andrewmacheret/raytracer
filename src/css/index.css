@@ -59,3 +59,37 @@ h2 {
   text-align: center;
 }
 
+
+/* progress bar */
+
+.scene {
+  width: 200px;
+  height: 200px;
+  margin: 100px auto 0 auto;
+  border: solid #666 1px;
+  padding: 5px;
+}
+
+.progress-bar-wrapper {
+  padding-top: 62px;
+  width: 200px;
+}
+
+.progress-bar-text {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 2px;
+}
+
+.progress-bar {
+  background-color: black;
+  border-radius: 13px; /* (height of inner div) / 2 + padding */
+  padding: 3px;
+}
+
+.progress-bar div {
+   width: 0%; /* overridden by javascript */
+   height: 20px;
+   background-color: orange;
+   border-radius: 10px;
+}
