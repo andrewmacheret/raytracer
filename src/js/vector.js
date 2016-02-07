@@ -1,5 +1,3 @@
-"use strict";
-
 // Vector math!
 
 var Vector = function(x, y, z) {

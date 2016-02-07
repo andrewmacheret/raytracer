@@ -1,16 +1,14 @@
-"use strict";
-
 var React = require('react');
-var ReactDOM = require('react-dom');
+//var ReactDOM = require('react-dom');
 
 var ProgressBar = React.createClass({
   propTypes: {
     text: React.PropTypes.string.isRequired,
     start: React.PropTypes.number.isRequired,
     end: React.PropTypes.number.isRequired,
-    customProp: function(props, propName, componentName) {
+    customProp: function(props /*, propName, componentName*/) {
       if (props.start >= props.end) {
-        return new Error('Start must be before end (start=' + start + ' end=' + end + ')');
+        return new Error('Start must be before end (start=' + props.start + ' end=' + props.end + ')');
       }
     }
   },

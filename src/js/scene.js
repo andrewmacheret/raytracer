@@ -1,5 +1,3 @@
-"use strict";
-
 var React = require('react');
 var ReactDOM = require('react-dom');
 
@@ -159,7 +157,7 @@ var Scene = React.createClass({
       } else {
         scene.objects.push(object);
       }
-    };
+    }
 
     this.setState({
       scene: scene
@@ -199,7 +197,7 @@ var Scene = React.createClass({
         }
       }
 
-      console.log(new Date(), x, yBase);
+      //console.log(new Date(), x, yBase);
       this.updateProgress(index / image.data.length);
 
       var nextIteration = function() { loop(yBase + step, step); };
@@ -212,7 +210,7 @@ var Scene = React.createClass({
   getColor: function(x, y, width, height) {
     var trueUp = new Vector(0, 0, 1);
     var camera = this.state.scene.camera;
-    var h = (width / 2) / Math.tan(camera.field / 2)
+    var h = (width / 2) / Math.tan(camera.field / 2);
     var xM = width / 2 - x;
     var yM = height / 2 - y;
 
@@ -373,7 +371,6 @@ var Scene = React.createClass({
     var intersection = this.getPlaneIntersection(plane, rayPosition, rayDirection);
     if (intersection == null) return null;
 
-    var numFailed = 0;
     for (var i=0; i<points.length; i++) {
       var point = points[i];
       var lastPoint = points[(i + points.length - 1) % points.length];
@@ -459,7 +456,7 @@ var Scene = React.createClass({
 
     this.state.scene.lights.forEach(function(object) {
       var l = object.center.subtract(rayPosition);
-      var lMag = l.magnitude();
+      //var lMag = l.magnitude(); // TODO: did i need this???
       var lNorm = l.normalized();
 
       var percent = rayDirection.dotProduct(lNorm);
@@ -537,9 +534,11 @@ var Scene = React.createClass({
         }
 
         // debug:
+        /*
         canvas.addEventListener('mousemove', function(e) {
           console.log(e.offsetX, e.offsetY);
         });
+        */
       }.bind(this));
     }
   }
