@@ -116,45 +116,10 @@ gulp.task('copy-properties', function() {
 });
 
 gulp.task('lint', function () {
-  return gulp.src(['src/**/*.js'])
+  return gulp.src(['src/**/*.js', '*.js'])
     // eslint() attaches the lint output to the "eslint" property
     // of the file object so it can be used by other modules.
-    .pipe(eslint({
-      'extends': 'eslint:recommended',
-      'ecmaFeatures': {
-        'modules': true,
-        'jsx': true
-      },
-      'parser': 'babel-eslint',
-      'plugins': ['react'],
-      'rules': {
-        'react/jsx-uses-react': 1
-      },
-      'envs': [
-        'node', 'browser'
-      ]
-    }))
-    // eslint.format() outputs the lint results to the console.
-    // Alternatively use eslint.formatEach() (see Docs).
-    .pipe(eslint.format())
-    // To have the process exit with an error code (1) on
-    // lint error, return the stream and pipe to failAfterError last.
-    .pipe(eslint.failAfterError());
-}.bind(this));
-
-gulp.task('lint-gulp', function () {
-  return gulp.src(['*.js'])
-    // eslint() attaches the lint output to the "eslint" property
-    // of the file object so it can be used by other modules.
-    .pipe(eslint({
-      'extends': 'eslint:recommended',
-      'ecmaFeatures': {
-        'modules': true
-      },
-      'envs': [
-        'node'
-      ]
-    }))
+    .pipe(eslint())
     // eslint.format() outputs the lint results to the console.
     // Alternatively use eslint.formatEach() (see Docs).
     .pipe(eslint.format())
@@ -185,11 +150,11 @@ gulp.task('watch', ['build-dev'], function() {
   return buildJs({watch: true, compress: true});
 });
 
-gulp.task('build-dev', ['lint-gulp', 'copy-css', 'copy-html', 'copy-images', 'copy-properties'], function() {
+gulp.task('build-dev', ['lint', 'copy-css', 'copy-html', 'copy-images', 'copy-properties'], function() {
   return buildJs({watch: false, compress: false});
 });
 
-gulp.task('build', ['lint-gulp', 'copy-css-compressed', 'copy-html', 'copy-images', 'copy-properties', 'lint', 'lint-gulp'], function() {
+gulp.task('build', ['lint', 'copy-css-compressed', 'copy-html', 'copy-images', 'copy-properties'], function() {
   return buildJs({watch: false, compress: true});
 });
 
