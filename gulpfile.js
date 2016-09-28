@@ -14,6 +14,8 @@ var watchify = require('watchify');
 
 var del = require('del'); // rm -rf
 
+require('es6-promise').polyfill();
+
 var PATHS = {
   srcDir: './src',
   buildDir: './build',
