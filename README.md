@@ -4,6 +4,8 @@
 
 A simple html5 ray tracer demo written in React.
 
+See it running at [https://andrewmacheret.com/projects/raytracer](https://andrewmacheret.com/projects/raytracer).
+
 Prereqs:
 * [Node.js](https://nodejs.org/) and [gulp](http://browserify.org/) on a linux server
  * `npm install -g gulp` to install gulp if you already have Node.js
