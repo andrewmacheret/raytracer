@@ -1,5 +1,7 @@
 # raytracer
 
+[![Build Status](https://travis-ci.org/andrewmacheret/raytracer.svg?branch=master)](https://travis-ci.org/andrewmacheret/raytracer) [![License](https://img.shields.io/badge/license-MIT-lightgray.svg)](https://github.com/andrewmacheret/raytracer/blob/master/LICENSE.md)
+
 A simple html5 ray tracer demo written in React.
 
 Prereqs:
