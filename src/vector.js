@@ -60,4 +60,4 @@ Vector.prototype.distance = function(vector) {
   return Math.sqrt(x*x + y*y + z*z);
 };
 
-module.exports = Vector;
+export default Vector;

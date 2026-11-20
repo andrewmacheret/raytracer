@@ -1,49 +1,27 @@
 {
   "name": "raytracer",
-  "version": "1.0.0",
-  "description": "A web-based ray tracer written in React.",
-  "main": "bundle.js",
-  "scripts": {
-    "test": "gulp test"
-  },
+  "description": "A simple ray tracer that renders a 3D scene in the browser, written in React",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/andrewmacheret/raytracer.git"
   },
-  "keywords": [
-    "react",
-    "chess"
-  ],
   "author": "Andrew Macheret <andrew.macheret@gmail.com>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/andrewmacheret/raytracer/issues"
-  },
-  "homepage": "https://github.com/andrewmacheret/raytracer#readme",
-  "devDependencies": {
-    "babel-eslint": "^4.1.8",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-react": "^6.3.13",
-    "babelify": "^7.2.0",
-    "browserify": "^12.0.1",
-    "del": "^2.2.0",
-    "es6-promise": "^4.0.3",
-    "eslint-plugin-react": "^3.16.1",
-    "gulp": "^3.9.0",
-    "gulp-cssnano": "^2.1.0",
-    "gulp-eslint": "^1.1.1",
-    "gulp-notify": "^2.2.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-streamify": "^1.0.2",
-    "gulp-uglify": "^1.5.1",
-    "gulp-util": "^3.0.7",
-    "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.6.1"
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test"
   },
   "dependencies": {
-    "jquery": "^2.1.4",
-    "properties-reader": "0.0.13",
-    "react": "^0.14.3",
-    "react-dom": "^0.14.3"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.3.0",
+    "vite": "^8.3.8"
   }
 }
