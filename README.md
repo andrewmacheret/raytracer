@@ -1,26 +1,27 @@
 # raytracer
 
-[![Build Status](https://travis-ci.org/andrewmacheret/raytracer.svg?branch=master)](https://travis-ci.org/andrewmacheret/raytracer) [![License](https://img.shields.io/badge/license-MIT-lightgray.svg)](https://github.com/andrewmacheret/raytracer/blob/master/LICENSE.md)
+[![Build and deploy](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml/badge.svg)](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml) [![License](https://img.shields.io/badge/license-MIT-lightgray.svg)](https://github.com/andrewmacheret/raytracer/blob/master/LICENSE.md)
 
-A simple html5 ray tracer demo written in React.
+A simple ray tracer that renders a 3D scene in the browser, written in React and built with Vite.
 
-See it running at [https://andrewmacheret.com/projects/raytracer](https://andrewmacheret.com/projects/raytracer).
+See it running at [https://andrewmacheret.com/projects/raytracer/](https://andrewmacheret.com/projects/raytracer/).
 
-Prereqs:
-* [Node.js](https://nodejs.org/) and [gulp](http://browserify.org/) on a linux server
- * `npm install -g gulp` to install gulp if you already have Node.js
-* A web server (like [Apache](https://httpd.apache.org/)).
+![Rendered scene](public/screenshot.png?raw=true "Rendered scene")
 
-Installation steps:
-* `git clone <clone url>`
-* `cd raytracer/`
-* `npm install` - this will install required packages as specified in [package.json](package.json)
-* Modify the scene in [app.properties](app.properties) as needed
-* `gulp build` - this will build all required files to the `build/` directory
+## Run it locally
 
-Test it:
-* Open `build/index.html` in a browser.
- * For testing purposes, if you don't have a web server, running `python -m SimpleHTTPServer` in the `build/` directory and navigating to [http://localhost:8000](http://localhost:8000) should do the trick.
-* By default you should see a beatiful 500x500 scene in 3d.
-* To troubleshoot, look for javascript errors in the browser console.
+Needs [Node.js](https://nodejs.org/) 24.
 
+```
+npm install
+npm run dev
+```
+
+The scene (camera, lights, spheres and the floor) is described in [app.properties](app.properties). Edit it and the page reloads with the new scene.
+
+- `npm test` checks the scene loads and that rays hit the right things.
+- `npm run build` builds the site into `dist/`.
+
+## Deploy
+
+Pushing to `master` runs [GitHub Actions](.github/workflows/deploy.yml), which tests and builds the site, syncs `dist/` to `s3://andrewmacheret.com/projects/raytracer`, and clears the CloudFront cache. It signs in to AWS with GitHub OIDC using the role in the `AWS_ROLE_ARN` repo variable.

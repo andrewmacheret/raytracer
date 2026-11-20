@@ -70,4 +70,4 @@ Color.prototype.normalized = function() {
   );
 };
 
-module.exports = Color;
+export default Color;

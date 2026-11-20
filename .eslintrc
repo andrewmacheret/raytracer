@@ -1,9 +1,0 @@
-{
-  "extends": "eslint:recommended",
-  "ecmaFeatures": {
-    "modules": true
-  },
-  "env": {
-    "node": true
-  }
-}
