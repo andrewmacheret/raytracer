@@ -2,7 +2,7 @@
 
 [![Build and deploy](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml/badge.svg)](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml) [![License](https://img.shields.io/badge/license-MIT-lightgray.svg)](https://github.com/andrewmacheret/raytracer/blob/master/LICENSE.md)
 
-A simple ray tracer that renders a 3D scene in the browser, written in React and built with Vite.
+A simple ray tracer that renders a 3D scene in the browser, written in plain JavaScript and built with Vite.
 
 See it running at [https://andrewmacheret.com/projects/raytracer/](https://andrewmacheret.com/projects/raytracer/).
 
