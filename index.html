@@ -2,23 +2,79 @@
 <html lang="en-US">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b1120">
 
 <!-- open graph -->
 <meta property="og:url" content="https://andrewmacheret.com/projects/raytracer/" />
 <meta property="og:image" content="https://andrewmacheret.com/projects/raytracer/screenshot.png" />
 <meta property="og:title" content="Ray Tracer" />
-<meta property="og:description" content="A simple ray tracer that renders a 3D scene right in your browser." />
+<meta property="og:description" content="A ray tracer that renders shiny spheres on a mirror floor right in your browser. Drag to look around." />
 <meta property="og:type" content="website" />
 
 <!-- title -->
 <title>Ray Tracer</title>
 <script async src="https://andrewmacheret.com/analytics.js"></script>
-<meta name="description" content="A simple ray tracer that renders a 3D scene right in your browser, written in plain JavaScript." />
+<meta name="description" content="A ray tracer written in plain JavaScript that renders shiny spheres on a mirror floor in your browser, using every CPU core. Drag to look around, shuffle the scene, and save the picture." />
 <link rel="canonical" href="https://andrewmacheret.com/projects/raytracer/" />
 </head>
 <body>
-<div id="content"></div>
+<main class="app">
+  <header class="header">
+    <div>
+      <h1>Ray Tracer</h1>
+      <p>Drag to look around. Scroll or pinch to zoom.</p>
+    </div>
+    <div class="status" id="status" title="">
+      <span class="spinner" aria-hidden="true"></span>
+      <strong id="status-value">0%</strong>
+      <span id="status-label">tracing</span>
+    </div>
+  </header>
+
+  <section class="stage">
+    <div class="frame">
+      <canvas id="canvas" tabindex="0" role="img" aria-label="Ray traced spheres on a mirror floor. Drag or use the arrow keys to look around. Scroll, pinch, or press plus and minus to zoom."></canvas>
+      <div class="hint" id="hint" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+        Drag to orbit
+      </div>
+      <div class="progress" id="progress" role="progressbar" aria-label="Render progress" aria-valuemin="0" aria-valuemax="100"><div></div></div>
+    </div>
+
+    <div class="dock">
+      <label class="slider">
+        <span>Reflections</span>
+        <input type="range" id="bounces" min="0" max="8" step="1">
+        <span class="slider-value" id="bounces-value"></span>
+      </label>
+
+      <nav class="controls" aria-label="Scene controls">
+        <button type="button" class="control" id="reset">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset
+        </button>
+        <button type="button" class="control" id="save">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Save
+        </button>
+        <button type="button" class="control primary" id="shuffle">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
+          Shuffle
+        </button>
+      </nav>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <a href="https://andrewmacheret.com/">More projects</a>
+    <span aria-hidden="true">&middot;</span>
+    <a href="https://en.wikipedia.org/wiki/Ray_tracing_(graphics)">How ray tracing works</a>
+    <span aria-hidden="true">&middot;</span>
+    <a href="https://github.com/andrewmacheret/raytracer">Source</a>
+  </footer>
+</main>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

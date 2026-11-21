@@ -34,6 +34,15 @@ Color.prototype.multiply = function(scalar) {
   );
 };
 
+Color.prototype.add = function(color) {
+  return new Color(
+    this.a,
+    this.r + color.r,
+    this.g + color.g,
+    this.b + color.b
+  );
+};
+
 Color.prototype.divide = function(scalar) {
   return new Color(
     this.a,
