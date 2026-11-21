@@ -27,7 +27,7 @@
   width: 0.8rem;
   height: 0.8rem;
   border: 2px solid rgb(255 255 255 / 0.2);
-  border-top-color: #a78bfa;
+  border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
 }
@@ -46,8 +46,8 @@
   margin: 0 auto;
   overflow: hidden;
   border-radius: 16px;
-  background: #020617;
-  box-shadow: 0 12px 30px rgb(0 0 0 / 0.4);
+  background: var(--bg);
+  box-shadow: var(--media-shadow);
 }
 
 .frame canvas {
@@ -81,7 +81,7 @@
   padding: 0.35rem 0.75rem;
   border: 1px solid rgb(255 255 255 / 0.15);
   border-radius: 999px;
-  background: rgb(15 23 42 / 0.6);
+  background: var(--scrim);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: var(--bright);
