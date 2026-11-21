@@ -14,7 +14,7 @@ const MATERIALS = [
 
 const pick = (list, random) => list[Math.floor(random() * list.length)];
 
-export function shuffleScene(spec, { center = { x: 0, y: 20 }, random = Math.random } = {}) {
+export function randomizeScene(spec, { center = { x: 0, y: 20 }, random = Math.random } = {}) {
   const floor = spec.objects.find((object) => object.type === 'plane');
   const floorZ = floor ? floor.point.z : 0;
   const count = 4 + Math.floor(random() * 4);

@@ -11,7 +11,7 @@ See it running at [https://andrewmacheret.com/projects/raytracer/](https://andre
 - Drag (or use the arrow keys) to orbit the camera. Scroll, pinch, or press `+` and `-` to zoom.
 - The picture is traced on a web worker per CPU thread. It shows big blocks first, then full detail, then keeps adding samples per pixel (16 in total) to smooth the edges.
 - The Reflections slider sets how many times a ray can bounce off a shiny surface.
-- Shuffle drops a random set of mirror, glossy and matte spheres on the floor. Reset brings back the original scene. Save downloads the picture as a PNG.
+- Randomize drops a random set of mirror, glossy and matte spheres on the floor. Reset brings back the original scene. Save downloads the picture as a PNG.
 
 ## Run it locally
 
@@ -24,7 +24,7 @@ npm run dev
 
 The scene (camera, lights, spheres and the floor) is described in [app.properties](app.properties). Edit it and the page reloads with the new scene.
 
-- `npm test` checks the scene loads, rays hit the right things, the camera orbits correctly and shuffled spheres don't overlap.
+- `npm test` checks the scene loads, rays hit the right things, the camera orbits correctly and random spheres don't overlap.
 - `npm run build` builds the site into `dist/`.
 
 ## Deploy

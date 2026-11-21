@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { cameraFromOrbit, clampOrbit, orbitFrom } from '../src/camera.js';
 import { parseProperties } from '../src/properties.js';
-import { shuffleScene } from '../src/shuffle.js';
+import { randomizeScene } from '../src/randomize.js';
 import { buildScene, getColor, loadScene, readScene } from '../src/tracer.js';
 
 const text = readFileSync(new URL('../app.properties', import.meta.url), 'utf8');
@@ -58,13 +58,13 @@ test('clampOrbit keeps the camera above the floor and within zoom limits', () =>
   assert.ok(clampOrbit({ ...orbit, distance: 0.1 }, -1).distance >= 8);
 });
 
-test('shuffleScene puts non-overlapping spheres on the floor and keeps the rest', () => {
+test('randomizeScene puts non-overlapping spheres on the floor and keeps the rest', () => {
   const spec = readScene(parseProperties(text));
   let seed = 1;
   const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   for (let round = 0; round < 20; round++) {
-    const shuffled = shuffleScene(spec, { random });
-    const spheres = shuffled.objects.filter((o) => o.type === 'sphere');
+    const randomized = randomizeScene(spec, { random });
+    const spheres = randomized.objects.filter((o) => o.type === 'sphere');
     assert.ok(spheres.length >= 4 && spheres.length <= 7);
     assert.equal(spheres[0].reflect, 0.9);
     for (const [i, a] of spheres.entries()) {
@@ -73,8 +73,8 @@ test('shuffleScene puts non-overlapping spheres on the floor and keeps the rest'
         assert.ok(Math.hypot(a.center.x - b.center.x, a.center.y - b.center.y) > a.radius + b.radius);
       }
     }
-    assert.deepEqual(shuffled.objects.filter((o) => o.type !== 'sphere').map((o) => o.type), ['light', 'plane']);
-    assert.doesNotThrow(() => buildScene(shuffled));
+    assert.deepEqual(randomized.objects.filter((o) => o.type !== 'sphere').map((o) => o.type), ['light', 'plane']);
+    assert.doesNotThrow(() => buildScene(randomized));
   }
 });
 
