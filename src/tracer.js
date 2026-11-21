@@ -3,76 +3,137 @@ import Vector from './vector.js';
 
 // Builds the scene (camera, lights and objects) from the parsed app.properties.
 export function loadScene(properties) {
+  return buildScene(readScene(properties));
+}
+
+// Reads app.properties into plain objects, so the scene can be sent to a web worker.
+export function readScene(properties) {
   const get = (key) => properties.get('scene.' + key);
   const number = (key) => parseFloat(get(key));
-  const vector = (key) => new Vector(number(key + '.x'), number(key + '.y'), number(key + '.z'));
+  const point = (key) => ({ x: number(key + '.x'), y: number(key + '.y'), z: number(key + '.z') });
+  const material = (prefix) => ({
+    diffuse: number(prefix + 'diffuse'),
+    reflect: number(prefix + 'reflect'),
+    refract: number(prefix + 'refract'),
+    color: get(prefix + 'color')
+  });
+
+  const spec = {
+    depth: number('depth'),
+    sky: { color: get('sky.color'), horizon: get('sky.horizon') },
+    ambient: { color: get('ambient.color'), intensity: number('ambient.intensity') },
+    camera: {
+      position: point('camera.position'),
+      direction: point('camera.direction'),
+      field: number('camera.field')
+    },
+    objects: []
+  };
+
+  for (let i = 1; ; i++) {
+    const prefix = 'object.' + i + '.';
+    const type = get(prefix + 'type');
+    if (!type) {
+      break;
+    }
+
+    switch (type) {
+      case 'light':
+        spec.objects.push({
+          type,
+          color: get(prefix + 'color'),
+          center: point(prefix + 'center'),
+          radius: number(prefix + 'radius'),
+          strength: number(prefix + 'strength')
+        });
+        break;
+      case 'sphere':
+        spec.objects.push({ type, ...material(prefix), center: point(prefix + 'center'), radius: number(prefix + 'radius') });
+        break;
+      case 'plane':
+        spec.objects.push({ type, ...material(prefix), normal: point(prefix + 'normal'), point: point(prefix + 'point') });
+        break;
+      case 'quad':
+        spec.objects.push({
+          type,
+          ...material(prefix),
+          inverse: get(prefix + 'inverse'),
+          points: [1, 2, 3, 4].map((n) => point(prefix + 'point.' + n))
+        });
+        break;
+      default:
+        throw new Error('Unsupported object type: ' + type);
+    }
+  }
+
+  return spec;
+}
+
+// Turns the plain scene from readScene into vectors and colors the tracer can use.
+export function buildScene(spec) {
+  const vector = (p) => new Vector(p.x, p.y, p.z);
 
   const scene = {
-    depth: number('depth'),
+    depth: spec.depth,
     sky: {
-      color: Color.parse(get('sky.color'))
+      color: Color.parse(spec.sky.color),
+      horizon: spec.sky.horizon ? Color.parse(spec.sky.horizon) : null
     },
     ambient: {
-      color: Color.parse(get('ambient.color')),
-      intensity: number('ambient.intensity')
+      color: Color.parse(spec.ambient.color),
+      intensity: spec.ambient.intensity
     },
     camera: {
-      position: vector('camera.position'),
-      direction: vector('camera.direction').normalized(),
-      field: (Math.PI / 180) * number('camera.field')
+      position: vector(spec.camera.position),
+      direction: vector(spec.camera.direction).normalized(),
+      field: (Math.PI / 180) * spec.camera.field
     },
     objects: [],
     lights: []
   };
 
-  for (let i = 1; ; i++) {
-    const prefix = 'object.' + i + '.';
-    const objectType = get(prefix + 'type');
-    if (!objectType) {
-      break;
-    }
-
+  spec.objects.forEach((item, i) => {
     let object;
-    switch (objectType) {
+    switch (item.type) {
       case 'light':
         object = {
-          color: Color.parse(get(prefix + 'color')),
-          center: vector(prefix + 'center'),
-          radius: number(prefix + 'radius'),
-          strength: number(prefix + 'strength')
+          color: Color.parse(item.color),
+          center: vector(item.center),
+          radius: item.radius,
+          strength: item.strength
         };
         break;
 
       case 'sphere':
         object = {
-          diffuse: number(prefix + 'diffuse'),
-          reflect: number(prefix + 'reflect'),
-          refract: number(prefix + 'refract'),
-          color: Color.parse(get(prefix + 'color')),
-          center: vector(prefix + 'center'),
-          radius: number(prefix + 'radius')
+          diffuse: item.diffuse,
+          reflect: item.reflect,
+          refract: item.refract,
+          color: Color.parse(item.color),
+          center: vector(item.center),
+          radius: item.radius
         };
         break;
 
       case 'plane':
         object = {
-          diffuse: number(prefix + 'diffuse'),
-          reflect: number(prefix + 'reflect'),
-          refract: number(prefix + 'refract'),
-          color: Color.parse(get(prefix + 'color')),
-          normal: vector(prefix + 'normal').normalized(),
-          point: vector(prefix + 'point')
+          diffuse: item.diffuse,
+          reflect: item.reflect,
+          refract: item.refract,
+          color: Color.parse(item.color),
+          normal: vector(item.normal).normalized(),
+          point: vector(item.point)
         };
         break;
 
       case 'quad':
         object = {
-          diffuse: number(prefix + 'diffuse'),
-          reflect: number(prefix + 'reflect'),
-          refract: number(prefix + 'refract'),
-          color: Color.parse(get(prefix + 'color')),
-          inverse: get(prefix + 'inverse'),
-          points: [1, 2, 3, 4].map((n) => vector(prefix + 'point.' + n))
+          diffuse: item.diffuse,
+          reflect: item.reflect,
+          refract: item.refract,
+          color: Color.parse(item.color),
+          inverse: item.inverse,
+          points: item.points.map(vector)
         };
 
         object.rays = [
@@ -88,17 +149,17 @@ export function loadScene(properties) {
         break;
 
       default:
-        throw new Error('Unsupported object type: ' + objectType);
+        throw new Error('Unsupported object type: ' + item.type);
     }
 
-    object.type = objectType;
-    object.index = i;
+    object.type = item.type;
+    object.index = i + 1;
     if (object.type == 'light') {
       scene.lights.push(object);
     } else {
       scene.objects.push(object);
     }
-  }
+  });
 
   return scene;
 }
@@ -131,11 +192,23 @@ export function getColor(scene, x, y, width, height) {
   return getColorFromPathTree(scene, pathTree);
 }
 
+// The sky fades from the horizon color (if there is one) to the sky color straight up.
+function getSkyColor(scene, direction) {
+  const sky = scene.sky;
+  if (!sky.horizon) return sky.color;
+  const t = Math.sqrt(Math.max(0, direction.z));
+  return sky.horizon.multiply(1 - t).add(sky.color.multiply(t));
+}
+
 function getColorIntensitiesFromPathTree(scene, pathTree, distance) {
   const colorIntensities = [];
 
   if (pathTree == null) {
-    colorIntensities.push({color: scene.sky.color, intensity: 1});
+    return colorIntensities;
+  }
+
+  if (pathTree.sky) {
+    colorIntensities.push({color: getSkyColor(scene, pathTree.direction), intensity: 1});
     return colorIntensities;
   }
 
@@ -327,7 +400,7 @@ function getPathTree(scene, rayPosition, rayDirection, depth) {
   const closest = findClosestObject(scene, rayPosition, rayDirection);
 
   if (!closest) {
-    return null;
+    return {sky: true, direction: rayDirection};
   }
 
   if (closest.object.type != 'light') {
