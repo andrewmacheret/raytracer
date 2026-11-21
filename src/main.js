@@ -41,7 +41,7 @@ const bouncesValue = document.getElementById('bounces-value');
 const renderer = createRenderer(canvas, {
   onProgress({ progress: amount, done, samples, seconds, threads }) {
     const percent = Math.floor(amount * 100);
-    status.classList.toggle('done', done);
+    status.classList.toggle('good', done);
     progress.classList.toggle('done', done);
     progress.setAttribute('aria-valuenow', String(percent));
     progress.firstElementChild.style.width = percent + '%';
