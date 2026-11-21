@@ -2,7 +2,7 @@ import sceneText from '../app.properties?raw';
 import { cameraFromOrbit, clampOrbit, orbitFrom } from './camera.js';
 import { parseProperties } from './properties.js';
 import { MAX_SAMPLES, createRenderer } from './renderer.js';
-import { shuffleScene } from './shuffle.js';
+import { randomizeScene } from './randomize.js';
 import { readScene } from './tracer.js';
 import './index.css';
 
@@ -164,8 +164,8 @@ document.getElementById('reset').addEventListener('click', () => {
   draw();
 });
 
-document.getElementById('shuffle').addEventListener('click', () => {
-  scene = shuffleScene(classicScene, { center: orbit.target });
+document.getElementById('randomize').addEventListener('click', () => {
+  scene = randomizeScene(classicScene, { center: orbit.target });
   draw();
 });
 
