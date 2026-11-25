@@ -29,7 +29,7 @@ The scene (camera, lights, spheres and the floor) is described in [app.propertie
 
 ## Health check
 
-[`/projects/raytracer/healthcheck/`](https://andrewmacheret.com/projects/raytracer/healthcheck/) checks the page and its scripts and styles. The Canary workflow (`.github/workflows/canary.yml`) opens it once a day, started by [andrewmacheret/canary](https://github.com/andrewmacheret/canary).
+Once a day, the Canary workflow (`.github/workflows/canary.yml`) checks the page and its scripts and styles. It's started by [andrewmacheret/canary](https://github.com/andrewmacheret/canary).
 
 ## Deploy
 
