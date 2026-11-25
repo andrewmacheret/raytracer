@@ -1,6 +1,6 @@
 # raytracer
 
-[![Build and deploy](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml/badge.svg)](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml) [![License](https://img.shields.io/badge/license-MIT-lightgray.svg)](https://github.com/andrewmacheret/raytracer/blob/master/LICENSE.md)
+[![Build and deploy](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml/badge.svg)](https://github.com/andrewmacheret/raytracer/actions/workflows/deploy.yml) [![Canary](https://github.com/andrewmacheret/raytracer/actions/workflows/canary.yml/badge.svg)](https://github.com/andrewmacheret/raytracer/actions/workflows/canary.yml) [![License](https://img.shields.io/badge/license-MIT-lightgray.svg)](https://github.com/andrewmacheret/raytracer/blob/master/LICENSE.md)
 
 A simple ray tracer that renders a 3D scene in the browser, written in plain JavaScript and built with Vite.
 
@@ -26,6 +26,10 @@ The scene (camera, lights, spheres and the floor) is described in [app.propertie
 
 - `npm test` checks the scene loads, rays hit the right things, the camera orbits correctly and random spheres don't overlap.
 - `npm run build` builds the site into `dist/`.
+
+## Health check
+
+[`/projects/raytracer/healthcheck/`](https://andrewmacheret.com/projects/raytracer/healthcheck/) checks the page and its scripts and styles. The Canary workflow (`.github/workflows/canary.yml`) opens it once a day, started by [andrewmacheret/canary](https://github.com/andrewmacheret/canary).
 
 ## Deploy
 
